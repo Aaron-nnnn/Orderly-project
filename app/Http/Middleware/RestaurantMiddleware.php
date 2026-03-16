@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
 class RestaurantMiddleware
 {
@@ -15,11 +16,17 @@ class RestaurantMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = auth()->user;
+         $user = Auth::user();
 
-        if (!$user || !$user->role || $user->role->name !== 'Restaurant') {
+        if(!$user){
             return response()->json([
-                'message' => 'Unauthorized. Restaurant access only.'
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        if (!$user->role || $user->role->name !== 'Restaurant') {
+            return response()->json([
+                'message' => 'Unauthorized. Restaurant Owner access only.'
             ], 403);
         }
 

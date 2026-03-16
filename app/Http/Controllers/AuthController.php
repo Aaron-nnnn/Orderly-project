@@ -20,7 +20,6 @@ class AuthController extends Controller
             'password'=>'required|string|min:4|max:15|confirmed',
         ]);
  
-        // Always assign default role
         $role = Role::firstOrCreate(['name' => 'User']);
    
         $user = new User();

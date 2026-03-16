@@ -39,7 +39,7 @@ Route::delete('/deleteRole/{id}', [RoleController::class, 'deleteRole']);
 
 });
 
-Route::middleware('restaurant')->group(function () {
+Route::middleware(['auth:sanctum', 'restaurant'])->group(function () {
 
 Route::post('/saveRestaurant', [RestaurantController::class, 'createRestaurant']);
 Route::post('/updateRestaurant/{id}', [RestaurantController::class, 'updateRestaurant']);
