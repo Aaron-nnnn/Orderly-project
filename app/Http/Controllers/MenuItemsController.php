@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Menu_Items;
+use App\Models\MenuItems;
 use Illuminate\Http\Request;
 
 class MenuItemsController extends Controller
@@ -16,7 +16,7 @@ class MenuItemsController extends Controller
             'is_available'=>'required|boolean',
         ]);
 
-        $menuitems = new Menu_Items();
+        $menuitems = new MenuItems();
         $menuitems->restaurant_id = $validated['restaurant_id'];
         $menuitems->name = $validated['name'];
         $menuitems->price = $validated['price'];
@@ -37,7 +37,7 @@ class MenuItemsController extends Controller
 
     public function readAllMenuItems(){
         try{
-             $menuitems = Menu_Items::all();
+             $menuitems = MenuItems::all();
             return response()->json($menuitems);
             }
          catch(\Exception $exception){
@@ -50,7 +50,7 @@ class MenuItemsController extends Controller
 
     public function readMenuItems($id){
         try{
-            $menuitems = Menu_Items::findOrFail($id);
+            $menuitems = MenuItems::findOrFail($id);
             return response()->json($menuitems);
         }
         catch(\Exception $exception){
@@ -71,7 +71,7 @@ class MenuItemsController extends Controller
         ]);
 
         try{
-            $menuitems = Menu_Items::findOrFail($id);
+            $menuitems = MenuItems::findOrFail($id);
             $menuitems->restaurant_id = $validated['restaurant_id'];
             $menuitems->name = $validated['name'];
             $menuitems->price = $validated['price'];
@@ -91,7 +91,7 @@ class MenuItemsController extends Controller
 
     public function deleteMenuItems($id){
         try{
-            $menuitems = Menu_Items::findOrFail($id);
+            $menuitems = MenuItems::findOrFail($id);
             $menuitems->delete();
             return response("MenuItems deleted successfully!");
         }

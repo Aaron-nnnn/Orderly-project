@@ -13,16 +13,11 @@ return new class extends Migration
     {
         Schema::create('menu_items', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('restaurant_id')
-                  ->constrained()
-                  ->onDelete('cascade');
+            $table->foreignId('restaurant_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->integer('price');
             $table->integer('preparation_time');
             $table->boolean('is_available')->default(true);
-
-            $table->foreign('restaurant_id')->references('id')->on('restaurants');
-
             $table->timestamps();
         });
     }

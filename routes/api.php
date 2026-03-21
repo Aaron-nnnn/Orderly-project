@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MenuItemsController;
-use App\Http\Controllers\Order_ItemsController;
+use App\Http\Controllers\OrderItemsController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PaymentsController;
 use App\Http\Controllers\ResendEmailVerificationController;
@@ -45,9 +45,9 @@ Route::post('/saveRestaurant', [RestaurantController::class, 'createRestaurant']
 Route::post('/updateRestaurant/{id}', [RestaurantController::class, 'updateRestaurant']);
 Route::delete('/deleteRestaurant/{id}', [RestaurantController::class, 'deleteRestaurant']);
 
-Route::post('/saveRestaurant_table', [RestaurantTablesController::class, 'createRestaurant_table']);
-Route::post('/updateRestaurant_table/{id}', [RestaurantTablesController::class, 'updateRestaurant_table']);
-Route::delete('/deleteRestaurant_table/{id}', [RestaurantTablesController::class, 'deleteRestaurant_table']);
+Route::post('/saveRestaurantTable', [RestaurantTablesController::class, 'createRestaurantTable']);
+Route::post('/updateRestaurantTable/{id}', [RestaurantTablesController::class, 'updateRestaurantTable']);
+Route::delete('/deleteRestaurantTable/{id}', [RestaurantTablesController::class, 'deleteRestaurantTable']);
 
 Route::post('/saveMenuItem', [MenuItemsController::class, 'createMenuItem']);
 Route::post('/updateMenuItem/{id}', [MenuItemsController::class, 'updateMenuItem']);
@@ -57,9 +57,9 @@ Route::post('/saveOrder', [OrdersController::class, 'createOrder']);
 Route::post('/updateOrder/{id}', [OrdersController::class, 'updateOrder']);
 Route::delete('/deleteOrder/{id}', [OrdersController::class, 'deleteOrder']);
 
-Route::post('/saveOrder_item', [Order_ItemsController::class, 'createOrder_item']);
-Route::post('/updateOrder_item/{id}', [Order_ItemsController::class, 'updateOrder_item']);
-Route::delete('/deleteOrder_item/{id}', [Order_ItemsController::class, 'deleteOrder_item']);
+Route::post('/saveOrderItem', [OrderItemsController::class, 'createOrderItem']);
+Route::post('/updateOrderItem/{id}', [OrderItemsController::class, 'updateOrderItem']);
+Route::delete('/deleteOrderItem/{id}', [OrderItemsController::class, 'deleteOrderItem']);
 
 Route::post('/savePayment', [PaymentsController::class, 'createPayment']);
 Route::post('/updatePayment/{id}', [PaymentsController::class, 'updatePayment']);
@@ -69,8 +69,8 @@ Route::delete('/deletePayment/{id}', [PaymentsController::class, 'deletePayment'
 Route::get('/getRestaurants', [RestaurantController::class, 'readAllRestaurants']);
 Route::get('/getRestaurant/{id}', [RestaurantController::class, 'readRestaurant']);
 
-Route::get('/getRestaurant_tables', [RestaurantTablesController::class, 'readAllRestaurant_tables']);
-Route::get('/getRestaurant_table/{id}', [RestaurantTablesController::class, 'readRestaurant_table']);
+Route::get('/getRestaurantTables', [RestaurantTablesController::class, 'readAllRestaurantTables']);
+Route::get('/getRestaurantTable/{id}', [RestaurantTablesController::class, 'readRestaurantTable']);
 
 Route::get('/getMenuItems', [MenuItemsController::class, 'readAllMenuItems']);
 Route::get('/getMenuItem/{id}', [MenuItemsController::class, 'readMenuItem']);
@@ -78,8 +78,8 @@ Route::get('/getMenuItem/{id}', [MenuItemsController::class, 'readMenuItem']);
 Route::get('/getOrders', [OrdersController::class, 'readAllOrders']);
 Route::get('/getOrder/{id}', [OrdersController::class, 'readOrder']);
 
-Route::get('/getOrder_items', [Order_ItemsController::class, 'readAllOrder_items']);
-Route::get('/getOrder_item/{id}', [Order_ItemsController::class, 'readOrder_item']);
+Route::get('/getOrderItems', [OrderItemsController::class, 'readAllOrderItems']);
+Route::get('/getOrderItem/{id}', [OrderItemsController::class, 'readOrderItem']);
 
 Route::get('/getPayments', [PaymentsController::class, 'readAllPayments']);
 Route::get('/getPayment/{id}', [PaymentsController::class, 'readPayment']);

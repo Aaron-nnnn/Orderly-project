@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Restaurant_Tables;
+use App\Models\RestaurantTables;
 use Illuminate\Http\Request;
 
 class RestaurantTablesController extends Controller
@@ -16,7 +16,7 @@ class RestaurantTablesController extends Controller
             'occupied_until'=>'required|date',
         ]);
 
-        $restauranttables = new Restaurant_Tables();
+        $restauranttables = new RestaurantTables();
         $restauranttables->restaurant_id = $validated['restaurant_id'];
         $restauranttables->table_id = $validated['table_id'];
         $restauranttables->total_seats = $validated['total_seats'];
@@ -36,7 +36,7 @@ class RestaurantTablesController extends Controller
 
     public function readAllRestaurantTables(){
         try{
-             $restauranttables = Restaurant_Tables::all();
+             $restauranttables = RestaurantTables::all();
             return response()->json($restauranttables);
             }
          catch(\Exception $exception){
@@ -49,7 +49,7 @@ class RestaurantTablesController extends Controller
 
     public function readRestaurantTables($id){
         try{
-            $restauranttables = Restaurant_Tables::findOrFail($id);
+            $restauranttables = RestaurantTables::findOrFail($id);
             return response()->json($restauranttables);
         }
         catch(\Exception $exception){
@@ -70,8 +70,8 @@ class RestaurantTablesController extends Controller
         ]);
 
         try{
-            $restauranttables = Restaurant_Tables::findOrFail($id);     
-            $restauranttables = new Restaurant_Tables();
+            $restauranttables = RestaurantTables::findOrFail($id);     
+            $restauranttables = new RestaurantTables();
             $restauranttables->restaurant_id = $validated['restaurant_id'];
             $restauranttables->table_id = $validated['table_id'];
             $restauranttables->total_seats = $validated['total_seats'];
@@ -89,7 +89,7 @@ class RestaurantTablesController extends Controller
 
     public function deleteRestaurantTables($id){
         try{
-            $restauranttables = Restaurant_Tables::findOrFail($id);
+            $restauranttables = RestaurantTables::findOrFail($id);
             $restauranttables->delete();
             return response("RestaurantTables deleted successfully!");
         }

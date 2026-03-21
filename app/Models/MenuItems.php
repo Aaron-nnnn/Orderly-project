@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Menu_Items extends Model
+class MenuItems extends Model
 {
     protected $fillable = [
         'restaurant_id',

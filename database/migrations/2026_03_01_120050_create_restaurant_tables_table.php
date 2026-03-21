@@ -18,9 +18,11 @@ return new class extends Migration
             $table->integer('total_seats');
             $table->enum('status', ['available', 'reserved', 'occupied'])
                   ->default('available');
-            $table->dateTime('occupied_until');
+            $table->dateTime('occupied_until')->nullable();
 
-            $table->foreign('restaurant_id')->references('id')->on('restaurants');
+            $table->unique(['restaurant_id', 'table_number']);
+
+            $table->foreign('restaurant_id')->references('id')->on('restaurants')->cascadeOnDelete();
 
             $table->timestamps();
         });
