@@ -18,6 +18,9 @@ class AuthController extends Controller
             'name'=>'required|string|max:40',
             'email'=>'required|email|unique:users,email',
             'password'=>'required|string|min:4|max:15|confirmed',
+            'phoneNumber' => 'nullable|string|max:20',
+            'dob' => 'nullable|date',
+            'gender' => 'nullable|in:male,female,other',
         ]);
  
         $role = Role::firstOrCreate(['name' => 'User']);
@@ -26,6 +29,9 @@ class AuthController extends Controller
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->role_id = $role->id;
+        $user->phoneNumber = $validated['phoneNumber'] ?? null;
+        $user->dob = $validated['dob'] ?? null;
+        $user->gender = $validated['gender'] ?? null;
         $user->password = Hash::make($validated['password']);
 
         if($request->hasFile('user_image')){
@@ -66,7 +72,7 @@ class AuthController extends Controller
              return response()->json([
             'message'=>'Login Successful!',
             'token'=>$token,
-            'user'=>$user,
+            'user'=>$user->load('role'),
             'abilities'=>$user->abilities(),
          ], 200);
     }
