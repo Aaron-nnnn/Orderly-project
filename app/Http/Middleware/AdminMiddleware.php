@@ -13,17 +13,16 @@ class AdminMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
-    {
-        $user = auth()->user;
+   public function handle(Request $request, Closure $next): Response
+{
+    $user = $request->user();
 
-        if (!$user || !$user->role || $user->role->name !== 'Admin') {
-            return response()->json([
-                'message' => 'Unauthorized. Admin access only.'
-            ], 403);
-        }
-
-        return $next($request);
-    
+    if (!$user || $user->role_id != 1) {
+        return response()->json([
+            'message' => 'Unauthorized. Admin access only.'
+        ], 403);
     }
+
+    return $next($request);
+}
 }

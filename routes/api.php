@@ -4,11 +4,13 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MenuItemsController;
 use App\Http\Controllers\OrderItemsController;
 use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\OwnerRequestController;
 use App\Http\Controllers\PaymentsController;
 use App\Http\Controllers\ResendEmailVerificationController;
 use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\RestaurantTablesController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\VerifyEmailController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -29,13 +31,27 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout']);
 
-Route::middleware('admin')->group(function () {
+Route::post('/owner-request', [OwnerRequestController::class, 'store']);
+Route::get('/my-owner-requests', [OwnerRequestController::class, 'myRequests']);
+Route::get('/owner-request/status', [OwnerRequestController::class, 'status']);
+});
+
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
 Route::post('/saveRole', [RoleController::class, 'createRole']);
 Route::get('/getRoles', [RoleController::class, 'readAllRoles']);
 Route::get('/getRole/{id}', [RoleController::class, 'readRole']);
 Route::post('/updateRole/{id}', [RoleController::class, 'updateRole']);
 Route::delete('/deleteRole/{id}', [RoleController::class, 'deleteRole']);
+
+Route::get('/owner-requests', [OwnerRequestController::class, 'index']);
+Route::post('/owner-requests/{id}/approve', [OwnerRequestController::class, 'approve']);
+Route::post('/owner-requests/{id}/reject', [OwnerRequestController::class, 'reject']);
+Route::delete('/owner-requests/{id}', [OwnerRequestController::class, 'destroy']);
+
+Route::get('/users', [UserController::class, 'index']);
+Route::post('/users', [UserController::class, 'store']);
+Route::put('/users/{id}', [UserController::class, 'update']);
 
 });
 
@@ -83,4 +99,3 @@ Route::get('/getOrderItem/{id}', [OrderItemsController::class, 'readOrderItem'])
 
 Route::get('/getPayments', [PaymentsController::class, 'readAllPayments']);
 Route::get('/getPayment/{id}', [PaymentsController::class, 'readPayment']);
-});

@@ -19,7 +19,7 @@ class AuthController extends Controller
             'email'=>'required|email|unique:users,email',
             'password'=>'required|string|min:4|max:15|confirmed',
             'phoneNumber' => 'nullable|string|max:20',
-            'dob' => 'nullable|date',
+            'dob' => 'nullable|date_format:Y-m-d',
             'gender' => 'nullable|in:male,female,other',
         ]);
  
@@ -40,11 +40,19 @@ class AuthController extends Controller
 
         $user->save();
 
-        $user->sendEmailVerificationNotification();
+        $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'message'=>'Registration successful. Please verify your email.'
-            ], 201);
+            'message' => 'Registration successful',
+            'token' => $token,
+            'user' => $user->load('role')
+        ], 201);
+
+        // $user->sendEmailVerificationNotification();
+
+        // return response()->json([
+        //     'message'=>'Registration successful..'
+        //     ], 201);
         }
     
      public function login(Request $request){
@@ -61,11 +69,11 @@ class AuthController extends Controller
                 ]);
             }
 
-        if(!$user->hasVerifiedEmail()){
-            return response()->json([
-                'message'=>'Your account is not active, please verify your email first'
-            ], 403);
-        }         
+        // if(!$user->hasVerifiedEmail()){
+        //     return response()->json([
+        //         'message'=>'Your account is not active, please verify your email first'
+        //     ], 403);
+        // }         
     
          $token = $user->createToken("auth-token")->plainTextToken;
 
