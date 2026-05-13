@@ -16,7 +16,7 @@ return new class extends Migration
               ->nullable()
               ->after('email')
               ->constrained()
-              ->onDelete('cascade');
+              ->nullOnDelete();
         });
     }
 

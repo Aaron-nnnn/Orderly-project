@@ -10,38 +10,56 @@ class UserController extends Controller
     
     public function index()
     {
-        return response()->json(User::all());
+        return response()->json([
+            'data' => User::latest()->get()
+        ]);
     }
 
     
     public function store(Request $request)
     {
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'phoneNumber' => $request->phoneNumber,
-            'dob' => $request->dob,
-            'gender' => $request->gender,
-            'role_id' => 3, 
+        $validated = $request->validate([
+            'name' => 'required|string|max:40',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'phoneNumber' => 'nullable|string|max:20',
+            'dob' => 'nullable|date',
+            'gender' => 'nullable|in:male,female,other',
         ]);
 
-        return response()->json($user);
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'phoneNumber' => $validated['phoneNumber'] ?? null,
+            'dob' => $validated['dob'] ?? null,
+            'gender' => $validated['gender'] ?? null,
+            'role_id' => 3,
+        ]);
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'data' => $user
+        ], 201);
     }
 
 
     public function update(Request $request, $id)
     {
-        $user = User::findOrFail($id);
-
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phoneNumber' => $request->phoneNumber,
-            'dob' => $request->dob,
-            'gender' => $request->gender,
+        $validated = $request->validate([
+            'name' => 'required|string|max:40',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'phoneNumber' => 'nullable|string|max:20',
+            'dob' => 'nullable|date',
+            'gender' => 'nullable|in:male,female,other',
         ]);
 
-        return response()->json($user);
+        $user = User::findOrFail($id);
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'User updated successfully',
+            'data' => $user
+        ]);
     }
 }

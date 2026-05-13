@@ -2,103 +2,58 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payments;
+use App\Models\Order;
+use App\Models\RestaurantTable;
 use Illuminate\Http\Request;
 
 class PaymentsController extends Controller
 {
-     public function createPayments(Request $request){
+    public function payOrder(Request $request)
+    {
         $validated = $request->validate([
-            'order_id'=>'required|string|exists:orders,id',
-            'amount'=>'required|string|min:1',
-            'type'=>'required|string|unique:payments,name',
-            'status'=>'required|string|in:paid, pending',
-            'method'=>'required|string|',
+            'order_id' => 'required|exists:orders,id',
+            'payment_method' => 'required|string',
+            'amount_paid' => 'required|numeric|min:1',
         ]);
 
-        $payments = new Payments();
-        $payments->order_id = $validated['order_id'];
-        $payments->amount = $validated['amount'];
-        $payments->type = $validated['type'];
-        $payments->status = $validated['status'];
-        $payments->method = $validated['method'];
+        $order = Order::findOrFail($validated['order_id']);
 
-        try{
-            $payments->save();
-            return response()->json($payments);
-        }
-        catch(\Exception $exception){
+        if ($validated['amount_paid'] < $order->total_amount) {
             return response()->json([
-                'error'=>'Failed to Save the Payments.',
-                'message'=>$exception->getMessage()
-            ], 200);
+                'message' => 'Insufficient payment amount'
+            ], 400);
         }
-    }
 
-    public function readAllPayments(){
-        try{
-             $payments = Payments::all();
-            return response()->json($payments);
+        $order->payment_method = $validated['payment_method'];
+        $order->amount_paid = $validated['amount_paid'];
+        $order->is_paid = true;
+        $order->status = 'completed';
+        $order->save();
+
+        if ($order->order_type === 'dine_in' && $order->table_id) {
+
+            $table = RestaurantTable::find($order->table_id);
+
+            if ($table) {
+                $table->status = 'available';
+                $table->occupied_until = null;
+                $table->save();
             }
-         catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to get the Payments.',
-                 'message'=>$exception->getMessage()
-            ], 200);
-         }
-    }
-
-    public function readPayments($id){
-        try{
-            $payments = Payments::findOrFail($id);
-            return response()->json($payments);
         }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to get the Payments',
-                'message'=>$exception->getMessage()
-            ], 200);
+
+        if ($order->order_type === 'dine_in' && $order->table_id) {
+        $table = RestaurantTable::find($order->table_id);
+        if ($table) {
+            $table->update([
+                'status' => 'available',
+                'occupied_until' => null
+            ]);
         }
     }
 
-    public function updatePayments(Request $request, $id){
-        $validated = $request->validate([
-            'order_id'=>'required|string|exists:orders,id',
-            'amount'=>'required|string|min:1',
-            'type'=>'required|string|unique:payments,name',
-            'status'=>'required|string|in:paid, pending',
-            'method'=>'required|string|',
+        return response()->json([
+            'message' => 'Payment successful',
+            'order' => $order
         ]);
-
-        try{
-            $payments = Payments::findOrFail($id);
-            $payments->order_id = $validated['order_id'];
-            $payments->amount = $validated['amount'];
-            $payments->type = $validated['type'];
-            $payments->status = $validated['status'];
-            $payments->method = $validated['method'];
-            $payments->save();
-            return response()->json($payments);
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to save the Payments.',
-                'message'=>$exception->getMessage()
-            ]);
-        }
-    }
-
-    public function deletePayments($id){
-        try{
-            $payments = Payments::findOrFail($id);
-            $payments->delete();
-            return response("Payments deleted successfully!");
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to delete the Payments.',
-                'message'=>$exception->getMessage()
-            ]);
-        }
     }
 }

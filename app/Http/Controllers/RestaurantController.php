@@ -7,107 +7,150 @@ use Illuminate\Http\Request;
 
 class RestaurantController extends Controller
 {
-     public function createRestaurant(Request $request){
+    public function createRestaurant(Request $request)
+    {
         $validated = $request->validate([
-            'name'=>'required|string|max:225',
-            'location'=>'required|string|max:225',
-            'total_tables'=>'required|integer|min:1',
-            'seating_layout'=>'nullable|image|mimes:jpeg,png,jpg',
+            'name' => 'required|string|max:225',
+            'location' => 'required|string|max:225',
+            'total_tables' => 'required|integer|min:1',
+            'seating_layout' => 'nullable|image|mimes:jpeg,png,jpg'
         ]);
 
-        $restaurant = new Restaurant();
-        $restaurant->name = $validated['name'];
-        $restaurant->location = $validated['location'];
-        $restaurant->total_tables = $validated['total_tables'];
+        try {
+            $user = $request->user();
 
-        $restaurant->user_id = auth()->id;
-
-        if ($request->hasFile('seating_layout')) {
-            $restaurant->seating_layout = $request->file('seating_layout')
-            ->store('seating_layouts', 'public');
-        }
-
-        try{
-            $restaurant->save();
-            return response()->json($restaurant);
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to Save the Restaurant.',
-                'message'=>$exception->getMessage()
-            ], 200);
-        }
-    }
-
-    public function readAllRestaurants(){
-        try{
-             $restaurants = Restaurant::all();
-            return response()->json($restaurants);
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Unauthenticated'
+                ], 401);
             }
-         catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to get the Restaurants.',
-                 'message'=>$exception->getMessage()
-            ], 200);
-         }
-    }
 
-    public function readRestaurant($id){
-        try{
-            $restaurant = Restaurant::findOrFail($id);
-            return response()->json($restaurant);
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to get the Restaurant',
-                'message'=>$exception->getMessage()
-            ], 200);
-        }
-    }
-
-    public function updateRestaurant(Request $request, $id){
-       $validated = $request->validate([
-            'name'=>'required|string|max:225',
-            'location'=>'required|string|max:225',
-            'total_tables'=>'required|integer|min:1',
-            'seating_layout'=>'nullable|image|mimes:jpeg,png,jpg',
-        ]);
-
-        try{
-            $restaurant = Restaurant::findOrFail($id);
+            $restaurant = new Restaurant();
             $restaurant->name = $validated['name'];
             $restaurant->location = $validated['location'];
             $restaurant->total_tables = $validated['total_tables'];
+            $restaurant->user_id = $user->id;
 
-            $restaurant->user_id = auth()->id;
-            
-             if ($request->hasFile('seating_layout')) {
-                $restaurant->seating_layout = $request->file('seating_layout')
-                ->store('seating_layouts', 'public');
+            if ($request->hasFile('seating_layout')) {
+                $path = $request->file('seating_layout')
+                    ->store('restaurants', 'public');
+
+                $restaurant->seating_layout = $path;
             }
 
             $restaurant->save();
-            return response()->json($restaurant);
-        }
-        catch(\Exception $exception){
+
             return response()->json([
-                'error'=>'Failed to save the Restaurant.',
-                'message'=>$exception->getMessage()
-            ]);
+                'message' => 'Restaurant created successfully',
+                'data' => $restaurant
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to save restaurant',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 
-    public function deleteRestaurant($id){
-        try{
+    public function readAllRestaurants()
+    {
+        try {
+            return response()->json(
+                Restaurant::latest()->get(),
+                200
+            );
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to fetch restaurants',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function readRestaurant($id)
+    {
+        try {
+            return response()->json(
+                Restaurant::findOrFail($id),
+                200
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Restaurant not found',
+                'message' => $e->getMessage()
+            ], 404);
+        }
+    }
+
+    public function updateRestaurant(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:225',
+            'location' => 'required|string|max:225',
+            'total_tables' => 'required|integer|min:1',
+            'seating_layout' => 'nullable|image|mimes:jpeg,png,jpg'
+        ]);
+
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Unauthenticated'
+                ], 401);
+            }
+
+            $restaurant = Restaurant::findOrFail($id);
+
+            $restaurant->name = $validated['name'];
+            $restaurant->location = $validated['location'];
+            $restaurant->total_tables = $validated['total_tables'];
+            $restaurant->user_id = $user->id;
+
+            if ($request->hasFile('seating_layout')) {
+                $restaurant->seating_layout = $request->file('seating_layout')
+                    ->store('restaurants', 'public');
+            }
+
+            $restaurant->save();
+
+            return response()->json([
+                'message' => 'Restaurant updated successfully',
+                'data' => $restaurant
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to update restaurant',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function deleteRestaurant($id)
+    {
+        try {
             $restaurant = Restaurant::findOrFail($id);
             $restaurant->delete();
-            return response("Restaurant deleted successfully!");
-        }
-        catch(\Exception $exception){
+
             return response()->json([
-                'error'=>'Failed to delete the Restaurant.',
-                'message'=>$exception->getMessage()
-            ]);
+                'message' => 'Restaurant deleted successfully'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to delete restaurant',
+                'message' => $e->getMessage()
+            ], 500);
         }
+    }
+
+    public function getOwnerRestaurants(Request $request)
+    {
+        return Restaurant::where('user_id', $request->user()->id)
+            ->latest()
+            ->get();
     }
 }

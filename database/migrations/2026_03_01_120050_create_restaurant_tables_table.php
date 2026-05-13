@@ -19,7 +19,6 @@ return new class extends Migration
             $table->enum('status', ['available', 'reserved', 'occupied'])
                   ->default('available');
             $table->dateTime('occupied_until')->nullable();
-
             $table->unique(['restaurant_id', 'table_number']);
 
             $table->foreign('restaurant_id')->references('id')->on('restaurants')->cascadeOnDelete();

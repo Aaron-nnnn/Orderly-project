@@ -14,11 +14,11 @@ class RestaurantMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+   public function handle(Request $request, Closure $next): Response
     {
-         $user = Auth::user();
+        $user = Auth::user();
 
-        if(!$user){
+        if (!$user) {
             return response()->json([
                 'message' => 'User not authenticated'
             ], 401);

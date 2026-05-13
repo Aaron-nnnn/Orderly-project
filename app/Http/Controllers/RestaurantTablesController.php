@@ -2,102 +2,111 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\RestaurantTables;
+use App\Models\RestaurantTable;
 use Illuminate\Http\Request;
 
 class RestaurantTablesController extends Controller
 {
-    public function createRestaurantTables(Request $request){
+    public function createRestaurantTable(Request $request)
+    {
         $validated = $request->validate([
-            'restaurant_id'=>'required|exists:restaurants,id',
-            'table_number'=>'required|string|max:1000',
-            'total_seats'=>'required|integer|min:1',
-            'status'=>'required|string|in:available, occupied, reserved',
-            'occupied_until'=>'required|date',
+            'restaurant_id' => 'required|exists:restaurants,id',
+            'table_number' => 'required|integer',
+            'total_seats' => 'required|integer|min:1',
+            'status' => 'nullable|in:available,reserved,occupied',
+            'occupied_until' => 'nullable|date'
         ]);
 
-        $restauranttables = new RestaurantTables();
-        $restauranttables->restaurant_id = $validated['restaurant_id'];
-        $restauranttables->table_id = $validated['table_id'];
-        $restauranttables->total_seats = $validated['total_seats'];
-        $restauranttables->occupied_until = $validated['occupied_until'];
+        try {
+            $table = RestaurantTable::create([
+                'restaurant_id' => $validated['restaurant_id'],
+                'table_number' => $validated['table_number'],
+                'total_seats' => $validated['total_seats'],
+                'status' => $validated['status'] ?? 'available',
+                'occupied_until' => $validated['occupied_until'] ?? null,
+            ]);
 
-        try{
-            $restauranttables->save();
-            return response()->json($restauranttables);
-        }
-        catch(\Exception $exception){
             return response()->json([
-                'error'=>'Failed to Save the RestaurantTables.',
-                'message'=>$exception->getMessage()
-            ], 200);
+                'message' => 'Table created successfully',
+                'table' => $table
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to create table',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 
-    public function readAllRestaurantTables(){
-        try{
-             $restauranttables = RestaurantTables::all();
-            return response()->json($restauranttables);
-            }
-         catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to get the RestaurantTables.',
-                 'message'=>$exception->getMessage()
-            ], 200);
-         }
+    public function readAllRestaurantTables()
+    {
+        return RestaurantTable::all();
     }
 
-    public function readRestaurantTables($id){
-        try{
-            $restauranttables = RestaurantTables::findOrFail($id);
-            return response()->json($restauranttables);
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to get the RestaurantTables',
-                'message'=>$exception->getMessage()
-            ], 200);
-        }
+    public function readRestaurantTable($id)
+    {
+        return RestaurantTable::findOrFail($id);
     }
 
-    public function updateRestaurantTables(Request $request, $id){
+    public function getByRestaurant($restaurantId)
+    {
+        return RestaurantTable::where('restaurant_id', $restaurantId)->get();
+    }
+
+    public function updateRestaurantTable(Request $request, $id)
+    {
         $validated = $request->validate([
-            'restaurant_id'=>'required|exists:restaurants,id',
-            'table_number'=>'required|string|max:1000',
-            'total_seats'=>'required|integer|min:1',
-            'status'=>'required|string|in:available, occupied, reserved',
-            'occupied_until'=>'required|date',
+            'table_number' => 'sometimes|integer',
+            'total_seats' => 'sometimes|integer|min:1',
+            'status' => 'sometimes|in:available,reserved,occupied',
+            'occupied_until' => 'nullable|date'
         ]);
 
-        try{
-            $restauranttables = RestaurantTables::findOrFail($id);     
-            $restauranttables = new RestaurantTables();
-            $restauranttables->restaurant_id = $validated['restaurant_id'];
-            $restauranttables->table_id = $validated['table_id'];
-            $restauranttables->total_seats = $validated['total_seats'];
-            $restauranttables->occupied_until = $validated['occupied_until'];
-            $restauranttables->save();
-            return response()->json($restauranttables);
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to save the RestaurantTables.',
-                'message'=>$exception->getMessage()
-            ]);
-        }
+        $table = RestaurantTable::findOrFail($id);
+        $table->update($validated);
+
+        return response()->json([
+            'message' => 'Table updated successfully',
+            'table' => $table
+        ]);
     }
 
-    public function deleteRestaurantTables($id){
-        try{
-            $restauranttables = RestaurantTables::findOrFail($id);
-            $restauranttables->delete();
-            return response("RestaurantTables deleted successfully!");
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to delete the RestaurantTables.',
-                'message'=>$exception->getMessage()
-            ]);
-        }
+    public function deleteRestaurantTable($id)
+    {
+        RestaurantTable::findOrFail($id)->delete();
+
+        return response()->json([
+            'message' => 'Table deleted successfully'
+        ]);
+    }
+
+    public function occupyTable($id)
+    {
+        $table = RestaurantTable::findOrFail($id);
+
+        $table->update([
+            'status' => 'occupied'
+        ]);
+
+        return response()->json([
+            'message' => 'Table marked as occupied',
+            'table' => $table
+        ]);
+    }
+
+    public function releaseTable($id)
+    {
+        $table = RestaurantTable::findOrFail($id);
+
+        $table->update([
+            'status' => 'available',
+            'occupied_until' => null
+        ]);
+
+        return response()->json([
+            'message' => 'Table released',
+            'table' => $table
+        ]);
     }
 }

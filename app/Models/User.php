@@ -2,13 +2,11 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Role;
 
 class User extends Authenticatable 
 {
@@ -52,9 +50,9 @@ class User extends Authenticatable
 
      public function abilities(){
         return [
-            'admin' => $this->role && $this->role->name === 'Admin',
-            'restaurant' => $this->role && $this->role->name === 'Restaurant',
-            'user' => $this->role && $this->role->name === 'User',
+            'Admin' => $this->role && $this->role->name === 'Admin',
+            'Restaurant' => $this->role && $this->role->name === 'Restaurant',
+            'User' => $this->role && $this->role->name === 'User',
         ];
     }
 

@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
-use App\Notifications\VerifyEmailNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -17,10 +15,11 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name'=>'required|string|max:40',
             'email'=>'required|email|unique:users,email',
-            'password'=>'required|string|min:4|max:15|confirmed',
+            'password'=>'required|string|min:8|max:15|confirmed',
             'phoneNumber' => 'nullable|string|max:20',
             'dob' => 'nullable|date_format:Y-m-d',
             'gender' => 'nullable|in:male,female,other',
+            'user_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
  
         $role = Role::firstOrCreate(['name' => 'User']);
@@ -47,15 +46,9 @@ class AuthController extends Controller
             'token' => $token,
             'user' => $user->load('role')
         ], 201);
-
-        // $user->sendEmailVerificationNotification();
-
-        // return response()->json([
-        //     'message'=>'Registration successful..'
-        //     ], 201);
-        }
+    }
     
-     public function login(Request $request){
+    public function login(Request $request){
          $validated = $request->validate([
              'email'=>'required|email',
              'password'=>'required|string|min:4',
@@ -68,12 +61,6 @@ class AuthController extends Controller
                 'email'=> ['Invalid Credentials']
                 ]);
             }
-
-        // if(!$user->hasVerifiedEmail()){
-        //     return response()->json([
-        //         'message'=>'Your account is not active, please verify your email first'
-        //     ], 403);
-        // }         
     
          $token = $user->createToken("auth-token")->plainTextToken;
 

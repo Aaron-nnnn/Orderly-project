@@ -2,116 +2,96 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Orders;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\RestaurantTable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OrdersController extends Controller
 {
-    
-    public function createOrder(Request $request){
+    public function createOrder(Request $request)
+    {
         $validated = $request->validate([
-            'user_id'=>'required|exists:users,id',
-            'resaurant_id'=>'required|exists:restaurants,id',
-            'table_id'=>'required|exists:restaurant_tables,id',
-            'total_amount'=>'required|numeric|min:0',
-            'deposit_amount'=>'required|numeric|min:1',
-            'balance_amount'=>'required|numeric|min:1',
-            'estimated_ready_time'=>'required|integer|min:1',
-            'status'=>'required|string|in:pending, confirmed',
+            'restaurant_id' => 'required|exists:restaurants,id',
+            'table_id' => 'nullable|exists:restaurant_tables,id',
+            'order_type' => 'required|in:dine_in,takeaway',
+            'total_amount' => 'required|numeric|min:0',
+            'items' => 'required|array'
         ]);
 
-        $order = new Orders();
-        $order->user_id = $validated['user_id'];
-        $order->restaurant_id = $validated['restaurant_id'];
-        $order->table_id = $validated['table_id'];
-        $order->total_amount = $validated['total_amount'];
-        $order->deposit_amount = $validated['deposit_amount'];
-        $order->balance_amount = $validated['balance_amount'];
-        $order->estimated_ready_time = $validated['estimated_ready_time'];
+        $order = Order::create([
+            'user_id' => Auth::id(),
+            'restaurant_id' => $validated['restaurant_id'],
+            'table_id' => $validated['table_id'] ?? null,
+            'order_type' => $validated['order_type'],
+            'total_amount' => $validated['total_amount'],
+            'status' => 'pending'
+        ]);
+
+        if ($order->order_type === 'dine_in' && $order->table_id) {
+            RestaurantTable::where('id', $order->table_id)
+                ->update(['status' => 'occupied']);
+        }
+
+        foreach ($validated['items'] as $item) {
+            OrderItem::create([
+                'order_id' => $order->id,
+                'menu_item_id' => $item['id'],
+                'quantity' => $item['quantity'],
+                'price' => $item['price']
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Order created successfully',
+            'order' => $order
+        ], 201);
+    }
+
+    public function readAllOrders()
+    {
+        return Order::with('items.menuItem')
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+    }
+
+    public function getByRestaurant($restaurantId)
+    {
+        return Order::with(['items.menuItem', 'user'])
+            ->where('restaurant_id', $restaurantId)
+            ->latest()
+            ->get();
+    }
+
+    public function readOrder($id)
+    {
+        return Order::with('items.menuItem')->findOrFail($id);
+    }
+
+    public function updateOrderStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:pending,preparing,ready,completed'
+        ]);
+
+        $order = Order::findOrFail($id);
         $order->status = $validated['status'];
+        $order->save();
 
-        try{
-            $order->save();
-            return response()->json($order);
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to Save the Order.',
-                'message'=>$exception->getMessage()
-            ], 200);
-        }
-    }
-
-    public function readAllOrders(){
-        try{
-             $orders = Orders::all();
-            return response()->json($orders);
-            }
-         catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to get the Orders.',
-                 'message'=>$exception->getMessage()
-            ], 200);
-         }
-    }
-
-    public function readOrder($id){
-        try{
-            $order = Orders::findOrFail($id);
-            return response()->json($order);
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to get the Order',
-                'message'=>$exception->getMessage()
-            ], 200);
-        }
-    }
-
-    public function updateOrder(Request $request, $id){
-        $validated = $request->validate([
-            'user_id'=>'required|exists:users,id',
-            'resaurant_id'=>'required|exists:restaurants,id',
-            'table_id'=>'required|exists:restaurant_tables,id',
-            'total_amount'=>'required|numeric|min:0',
-            'deposit_amount'=>'required|numeric|min:1',
-            'balance_amount'=>'required|numeric|min:1',
-            'estimated_ready_time'=>'required|integer|min:1',
-            'status'=>'required|string|in:pending, confirmed',
+        return response()->json([
+            'message' => 'Order status updated',
+            'order' => $order
         ]);
-
-        try{
-            $order = Orders::findOrFail($id);
-            $order->user_id = $validated['user_id'];
-            $order->restaurant_id = $validated['restaurant_id'];
-            $order->table_id = $validated['table_id'];
-            $order->total_amount = $validated['total_amount'];
-            $order->deposit_amount = $validated['deposit_amount'];
-            $order->balance_amount = $validated['balance_amount'];
-            $order->estimated_ready_time = $validated['estimated_ready_time'];
-            $order->status = $validated['status'];
-            $order->save();
-            return response()->json($order);
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to save the Order.',
-                'message'=>$exception->getMessage()
-            ]);
-        }
     }
 
-    public function deleteOrder($id){
-        try{
-            $order = Orders::findOrFail($id);
-            $order->delete();
-            return response("Order deleted successfully!");
-        }
-        catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to delete the Order.',
-                'message'=>$exception->getMessage()
-            ]);
-        }
+    public function deleteOrder($id)
+    {
+        Order::findOrFail($id)->delete();
+
+        return response()->json([
+            'message' => 'Order deleted'
+        ]);
     }
 }

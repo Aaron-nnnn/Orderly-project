@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('order_items', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('order_id');
-            $table->unsignedBigInteger('menu_item_id');
-            $table->integer('quantity');
-            $table->integer('price');
-            $table->timestamps();
+       Schema::create('order_items', function (Blueprint $table) {
+             $table->id();
+             $table->foreignId('order_id')->constrained('orders');
+             $table->foreignId('menu_item_id')->constrained('menu_items');
+             $table->integer('quantity');
+             $table->decimal('price', 10, 2);
+             $table->timestamps();
         });
     }
 

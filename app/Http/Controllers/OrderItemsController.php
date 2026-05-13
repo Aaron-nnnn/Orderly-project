@@ -2,87 +2,90 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 
 class OrderItemsController extends Controller
 {
-    public function createOrderItem(Request $request){
+    public function createOrderItem(Request $request)
+    {
         $validated = $request->validate([
-            'name'=>'required|string|unique:order_items,name',
+            'order_id' => 'required|exists:orders,id',
+            'menu_item_id' => 'required|exists:menu_items,id',
+            'quantity' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
         ]);
 
-        $order_item = new OrderItem();
-        $order_item->name = $validated['name'];
+        try {
+            $orderItem = OrderItem::create($validated);
 
-        try{
-            $order_item->save();
-            return response()->json($order_item);
-        }
-        catch(\Exception $exception){
             return response()->json([
-                'error'=>'Failed to Save the OrderItem.',
-                'message'=>$exception->getMessage()
-            ], 200);
+                'message' => 'Order item created successfully',
+                'data' => $orderItem
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'error' => 'Failed to save OrderItem',
+                'message' => $exception->getMessage()
+            ], 500);
         }
     }
 
-    public function readAllOrderItems(){
-        try{
-             $order_item = OrderItem::all();
-            return response()->json($order_item);
-            }
-         catch(\Exception $exception){
-            return response()->json([
-                'error'=>'Failed to get the OrderItems.',
-                 'message'=>$exception->getMessage()
-            ], 200);
-         }
+    public function readAllOrderItems()
+    {
+        return response()->json(OrderItem::all());
     }
 
-    public function readOrderItem($id){
-        try{
-            $order_item = OrderItem::findOrFail($id);
-            return response()->json($order_item);
-        }
-        catch(\Exception $exception){
+    public function readOrderItem($id)
+    {
+        try {
+            return response()->json(OrderItem::findOrFail($id));
+        } catch (\Exception $exception) {
             return response()->json([
-                'error'=>'Failed to get the OrderItem',
-                'message'=>$exception->getMessage()
-            ], 200);
+                'error' => 'OrderItem not found',
+                'message' => $exception->getMessage()
+            ], 404);
         }
     }
 
-    public function updateOrderItem(Request $request, $id){
+    public function updateOrderItem(Request $request, $id)
+    {
         $validated = $request->validate([
-            'name'=>'required|string',
+            'quantity' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
         ]);
 
-        try{
-            $order_item = OrderItem::findOrFail($id);
-            $order_item->name = $validated['name'];
-            $order_item->save();
-            return response()->json($order_item);
-        }
-        catch(\Exception $exception){
+        try {
+            $orderItem = OrderItem::findOrFail($id);
+            $orderItem->update($validated);
+
             return response()->json([
-                'error'=>'Failed to save the OrderItem.',
-                'message'=>$exception->getMessage()
+                'message' => 'Order item updated',
+                'data' => $orderItem
             ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'error' => 'Update failed',
+                'message' => $exception->getMessage()
+            ], 500);
         }
     }
 
-    public function deleteOrderItem($id){
-        try{
-            $order_item = OrderItem::findOrFail($id);
-            $order_item->delete();
-            return response("OrderItem deleted successfully!");
-        }
-        catch(\Exception $exception){
+    public function deleteOrderItem($id)
+    {
+        try {
+            $orderItem = OrderItem::findOrFail($id);
+            $orderItem->delete();
+
             return response()->json([
-                'error'=>'Failed to delete the OrderItem.',
-                'message'=>$exception->getMessage()
+                'message' => 'OrderItem deleted successfully'
             ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'error' => 'Delete failed',
+                'message' => $exception->getMessage()
+            ], 500);
         }
     }
 }

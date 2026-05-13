@@ -8,18 +8,17 @@ use Illuminate\Http\Request;
 
 class OwnerRequestController extends Controller
 {
-    // USER: send request
     public function store(Request $request)
     {
         $user = $request->user();
         
-        if ($user->role_id == 1) {
+        if ($user->role->name === 'admin') {
         return response()->json([
             'message' => 'Admins cannot request ownership'
         ], 403);
     }
 
-        if ($user->role_id == 2) {
+        if ($user->role->name === 'restaurant') {
             return response()->json([
                 'message' => 'You are already a restaurant owner'
             ], 400);
@@ -46,7 +45,6 @@ class OwnerRequestController extends Controller
         ], 201);
     }
 
-    // USER: check status (THIS FIXES YOUR PROFILE ISSUE)
     public function status(Request $request)
     {
         $req = OwnerRequest::where('user_id', $request->user()->id)
@@ -58,7 +56,6 @@ class OwnerRequestController extends Controller
         ]);
     }
 
-    // USER: view own requests
     public function myRequests(Request $request)
     {
         return OwnerRequest::where('user_id', $request->user()->id)
@@ -66,13 +63,11 @@ class OwnerRequestController extends Controller
             ->get();
     }
 
-    // ADMIN: view all requests
     public function index()
     {
         return OwnerRequest::with('user')->latest()->get();
     }
 
-    // ADMIN: approve
     public function approve($id)
     {
         $ownerRequest = OwnerRequest::findOrFail($id);
@@ -95,16 +90,9 @@ class OwnerRequestController extends Controller
         ]);
     }
 
-    // ADMIN: reject
     public function reject($id)
     {
         $ownerRequest = OwnerRequest::findOrFail($id);
-
-        if ($ownerRequest->status !== 'pending') {
-            return response()->json([
-                'message' => 'Already processed'
-            ], 400);
-        }
 
         $ownerRequest->status = 'rejected';
         $ownerRequest->save();
@@ -114,7 +102,6 @@ class OwnerRequestController extends Controller
         ]);
     }
 
-    // ADMIN: delete
     public function destroy($id)
     {
         OwnerRequest::findOrFail($id)->delete();

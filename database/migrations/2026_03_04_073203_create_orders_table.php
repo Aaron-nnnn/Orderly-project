@@ -6,32 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('restaurant_id')->constrained('restaurants');
-            $table->foreignId('table_id')->constrained('restaurant_tables');
-            $table->integer('total_amount');
-            $table->integer('deposit_amount');
-            $table->integer('balance_amount');
-            $table->integer('estimated_ready_time');
-            $table->enum('status', ['pending', 'confirmed'])
-                  ->default('pending');
-
+            $table->foreignId('table_id')
+                ->nullable()
+                ->constrained('restaurant_tables')
+                ->nullOnDelete();
+            $table->decimal('total_amount', 10, 2);
+            $table->enum('status', ['pending', 'preparing', 'ready', 'completed'])
+                ->default('pending');
             $table->timestamps();
         });
-        Schema::enableForeignKeyConstraints();
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('orders');

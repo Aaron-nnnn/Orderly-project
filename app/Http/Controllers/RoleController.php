@@ -23,7 +23,7 @@ class RoleController extends Controller
             return response()->json([
                 'error'=>'Failed to Save the Role.',
                 'message'=>$exception->getMessage()
-            ], 200);
+            ], 500);
         }
     }
 
@@ -36,7 +36,7 @@ class RoleController extends Controller
             return response()->json([
                 'error'=>'Failed to get the Roles.',
                  'message'=>$exception->getMessage()
-            ], 200);
+            ], 500);
          }
     }
 
@@ -49,13 +49,13 @@ class RoleController extends Controller
             return response()->json([
                 'error'=>'Failed to get the Role',
                 'message'=>$exception->getMessage()
-            ], 200);
+            ], 500);
         }
     }
 
     public function updateRole(Request $request, $id){
         $validated = $request->validate([
-            'name'=>'required|string',
+            'name' => 'required|string|unique:roles,name,' . $id,
         ]);
 
         try{
@@ -75,8 +75,17 @@ class RoleController extends Controller
     public function deleteRole($id){
         try{
             $role = Role::findOrFail($id);
+
+            if ($role->name === 'Admin') {
+                return response()->json([
+                     'message' => 'Cannot delete Admin role'
+                ], 403);
+            }       
+
             $role->delete();
-            return response("Role deleted successfully!");
+            return response()->json([
+                'message' => 'Role deleted successfully'
+            ]);
         }
         catch(\Exception $exception){
             return response()->json([
